@@ -24,6 +24,9 @@ typedef struct TVShow {
     Season *seasons;
 } TVShow;
 
+#define TRUE 1
+#define FALSE 0
+
 TVShow ***database = NULL;
 int dbSize = 0;
 
@@ -56,6 +59,8 @@ void deleteEpisode();
 void printEpisode();
 void printShow();
 void printArray();
+
+void sortShows(int, int);
 
 //Given functions 
 void addMenu() {
@@ -111,47 +116,67 @@ void mainMenu() {
     printf("4. Exit\n");
 }
 
+
 //My own functions
+
+void sortShows(int r, int c) {
+
+    TVShow *flatPtr = (TVShow *)database;
+
+    int totalElements = dbSize * dbSize;
+    int targetIdx = (r * dbSize) + c;
+
+    for (int i = totalElements - 1; i > targetIdx; i--) {
+        flatPtr[i] = flatPtr[i - 1];
+    }
+
+    database[r][c]->name = NULL; 
+}
+
 void addShow()
 {
-  if(database[dbSize][dbSize]=! NULL)
+  if(database[dbSize][dbSize]!= NULL)
     {
       expandDB();
     }
-    for(int r= 0; r<dbSize; r++)
-    {
-      for(int c= 0; c<dbSize; c++)
-      {
-        if(database[r][c]== NULL)
-        {
-         printf("Enter the name of the show:\n");
-         TVShow addShow;
-         addShow.name=
-         database[r][c]= 
+  char ch[0];
+  char *temp=NULL;
+  printf("Enter the name of the show:\n");
+  while(TRUE)
+  {
+    scanf("%c", &ch[0]);
+    if(ch[0]=='\0')
+     break;
+    temp=(char*)realloc(temp, strlen(temp)*sizeof(char)+sizeof(char));
+    strcat(temp, ch);
+    continue;
+  }
+ for(int r=0; r<dbSize; r++)
+  for(int c=0; c<dbSize; c++)
+  {
+    if(temp==database[r][c]->name)
+     {
+       printf("Show already exists.\n");
+       free(temp);
+       return;
+     }
+  }
+ 
+ for(int r=0; r<dbSize; r++)
+  for(int c=0; c<dbSize; c++)
+  {
+    int cmp=strcmp(temp, database[r][c]->name);
+    if(cmp<0)
+     {
+       sortShows(r, c);
+       TVShow *show=NULL;
+       show->name=(char*)malloc(strlen(temp)*sizeof(char));
+       database[r][c]=show;
 
 
 
-
-
-
-
-
-        }
-        
-
-
-
-
-      }
-
-
-
-
-
-
-    }
-  
-  
+     }
+  }
 
 
 
