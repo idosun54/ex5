@@ -118,6 +118,39 @@ void addShow()
     {
       expandDB();
     }
+    for(int r= 0; r<dbSize; r++)
+    {
+      for(int c= 0; c<dbSize; c++)
+      {
+        if(database[r][c]== NULL)
+        {
+         printf("Enter the name of the show:\n");
+         TVShow addShow;
+         addShow.name=
+         database[r][c]= 
+
+
+
+
+
+
+
+
+        }
+        
+
+
+
+
+      }
+
+
+
+
+
+
+    }
+  
   
 
 
