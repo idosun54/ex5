@@ -1,6 +1,6 @@
 /***********
- ID:
- NAME:
+ ID:idoshem
+ NAME:Ido Shemesh
 ***********/
 
 #include <stdio.h>
@@ -57,6 +57,7 @@ void printEpisode();
 void printShow();
 void printArray();
 
+//Given functions 
 void addMenu() {
     int choice;
     printf("Choose an option:\n");
@@ -110,6 +111,21 @@ void mainMenu() {
     printf("4. Exit\n");
 }
 
+//My own functions
+void addShow()
+{
+  if(database[dbSize][dbSize]=! NULL)
+    {
+      expandDB();
+    }
+  
+
+
+
+}
+
+
+//main
 int main() {
     int choice;
     do {
