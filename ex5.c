@@ -139,7 +139,7 @@ void addShow()
     {
       expandDB();
     }
-  char ch[0];
+  char ch[1];
   char *temp=NULL;
   printf("Enter the name of the show:\n");
   while(TRUE)
