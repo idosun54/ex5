@@ -119,8 +119,8 @@ void mainMenu() {
 
 //My own functions
 
-void sortShows(int r, int c) {
-
+void sortShows(int r, int c) 
+{
     TVShow *flatPtr = (TVShow *)database;
 
     int totalElements = dbSize * dbSize;
@@ -130,7 +130,7 @@ void sortShows(int r, int c) {
         flatPtr[i] = flatPtr[i - 1];
     }
 
-    database[r][c]->name = NULL; 
+    database[r][c] = NULL; 
 }
 
 void addShow()
@@ -172,16 +172,27 @@ void addShow()
        TVShow *show=NULL;
        show->name=(char*)malloc(strlen(temp)*sizeof(char));
        database[r][c]=show;
-
-
-
+       return;
      }
   }
+}
+
+void expandDB()
+{
+  if(dbSize==0)
+  {
+    dbSize++;
+    TVShow **tempRows=NULL;
+    tempRows=(TVShow*)realloc(database, sizeof());
+
+
+  }
+   database=(TVShow*)realloc(database, dbSize+1);
+
 
 
 
 }
-
 
 //main
 int main() {
