@@ -148,6 +148,25 @@ void sortShows(int r, int c)
     database[r][c] = NULL; 
 }
 
+void expandDB()
+{
+  if(dbSize==0)
+    {
+       database[dbSize][dbSize]=malloc(sizeof(TVShow));
+       dbSize++;
+       return;
+    }
+  for(int c=0; c<dbSize; c++)
+  {
+    database[dbSize][c]=malloc(sizeof(TVShow));
+  }
+  for(int r=0; r<dbSize; r++)
+  {
+    database[r][dbSize]=malloc(sizeof(TVShow));
+  }
+  dbSize++;
+}
+
 TVShow *findShow(char *temp)
 {
   for(int r=0; r<dbSize; r++)
@@ -177,7 +196,7 @@ Season *findSeason(TVShow *show, char *name)
 
 void addShow()
 {
-  if(database[dbSize][dbSize]!= NULL)
+  if(database[dbSize-1][dbSize-1]!= NULL)
     {
       expandDB();
     }
@@ -257,6 +276,70 @@ void addSeason()
  tempS->next=S;
 }
 
+
+void printEpisode()
+{
+  printf("Enter the name of the show:\n");
+  char *temp=getString();
+  TVShow *TV=findShow(temp);
+  if(TV==NULL)
+  {
+  printf("Show not found.\n");
+  free(temp);
+  return;
+  }
+  printf("Enter the name of the season:\n");
+  temp=getString();
+  Season *Sea=findSeason(TV, temp);
+  if(Sea==NULL)
+  {
+  printf("Season not found.\n");
+  free(temp);
+  return;
+  }
+  printf("Enter the name of the episode:\n");
+  temp=getString();
+  Episode *Epi=findEpisode(Sea, temp);
+  if(Epi==NULL)
+  {
+   printf("Episode not found.\n");
+   free(temp);
+   return;
+  }
+ free(temp);
+ printf("Name: %s", Epi->name);
+ printf("Length: %s", Epi->length);
+}
+
+void printShow()
+{
+ printf("Enter the name of the show:\n");
+ char *temp=getString();
+ if(findShow(temp)==NULL)
+ {
+  return;
+ }
+ TVShow *show=findShow(temp);
+ free(temp);
+ int count=0;
+ int countEp=0;
+ printf("Name: %s\n", show->name);
+ printf("Seasons:\n");
+ Season *Season=show->seasons;
+ Episode *Epi=Season->episodes;
+ while(Season!=NULL)
+ {
+   printf("    Season %d: %s\n", count, Season->name);
+   while(Epi!=NULL)
+   {
+     printf("        Episode %d: %s (%s)\n", count, Epi->name, Epi->length);
+     Epi=Epi->next;
+     countEp++;
+   }
+   Season=Season->next;
+   count++;
+ }
+}
 
 //main
 int main() {
