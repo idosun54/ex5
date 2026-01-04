@@ -31,7 +31,6 @@ TVShow ***database = NULL;
 int dbSize = 0;
 
 char *getString();
-int getInt();
 
 int validLength(char *s);
 int countShows();
@@ -119,6 +118,22 @@ void mainMenu() {
 
 //My own functions
 
+char *getString()
+{
+  char ch[1];
+  char *temp=NULL;
+  while(TRUE)
+  {
+    scanf("%c", &ch[0]);
+    if(ch[0]=='\0')
+     break;
+    temp=(char*)realloc(temp, strlen(temp)*sizeof(char)+sizeof(char));
+    strcat(temp, ch);
+    continue;
+  }
+  return temp;
+}
+
 void sortShows(int r, int c) 
 {
     TVShow *flatPtr = (TVShow *)database;
@@ -133,34 +148,47 @@ void sortShows(int r, int c)
     database[r][c] = NULL; 
 }
 
+TVShow *findShow(char *temp)
+{
+  for(int r=0; r<dbSize; r++)
+   for(int c=0; c<dbSize; c++)
+  {
+    if(strcmp(temp, database[r][c]->name)==0)
+     {
+       return database[r][c];
+     }
+  }
+  return NULL;
+}
+
+Season *findSeason(TVShow *show, char *name)
+{
+  Season *temp=show->seasons;
+  while(temp!=NULL)
+  {
+    if(strcmp(name, temp->name)==0)
+    {
+      return temp;
+    }
+   temp=temp->next;
+  }
+  return NULL;
+}
+
 void addShow()
 {
   if(database[dbSize][dbSize]!= NULL)
     {
       expandDB();
     }
-  char ch[1];
-  char *temp=NULL;
   printf("Enter the name of the show:\n");
-  while(TRUE)
-  {
-    scanf("%c", &ch[0]);
-    if(ch[0]=='\0')
-     break;
-    temp=(char*)realloc(temp, strlen(temp)*sizeof(char)+sizeof(char));
-    strcat(temp, ch);
-    continue;
-  }
- for(int r=0; r<dbSize; r++)
-  for(int c=0; c<dbSize; c++)
-  {
-    if(temp==database[r][c]->name)
-     {
-       printf("Show already exists.\n");
-       free(temp);
-       return;
-     }
-  }
+  char *temp=getString();
+ if(findShow(temp)!=NULL)
+ {
+  printf("Show already exists.\n");
+  free(temp);
+  return;
+ }
  
  for(int r=0; r<dbSize; r++)
   for(int c=0; c<dbSize; c++)
@@ -177,22 +205,58 @@ void addShow()
   }
 }
 
-void expandDB()
+void addSeason()
 {
-  if(dbSize==0)
+  printf("Enter the name of the show:\n");
+  char *temp=getString();
+  TVShow *TV=findShow(temp); 
+  if(TV==NULL)
   {
-    dbSize++;
-    TVShow **tempRows=NULL;
-    tempRows=(TVShow*)realloc(database, sizeof());
-
-
+   printf("Show not found.\n");
+   free(temp);
+   return;
   }
-   database=(TVShow*)realloc(database, dbSize+1);
-
-
-
-
+  printf("Enter the name of the season:\n");
+  temp=getString();
+  Season *S=findSeason(TV, temp);
+  if(S!=NULL)
+  {
+    printf("Season already exists.\n");
+    free(temp);
+    return;
+  }
+ printf("Enter the position:\n");
+ int pos;
+ S=realloc(S, sizeof(Season));
+ S->name=temp;
+ S->next=NULL;
+ free(temp);
+ scanf("%d", &pos);
+ Season *tempS=TV->seasons;
+ for(int i=0; i<pos; i++)
+ {
+   if(i==0&&tempS==NULL)
+   {
+    TV->seasons=S;
+    return;
+   }
+   if(tempS->next==NULL)
+   {
+    tempS->next=S;
+    return;
+   }
+   tempS=tempS->next;
+  }
+  if(pos==0)
+  {
+    S->next=tempS;
+    tempS=S;
+    return;
+  }
+ S->next=tempS->next;
+ tempS->next=S;
 }
+
 
 //main
 int main() {
