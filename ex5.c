@@ -31,6 +31,7 @@ TVShow ***database = NULL;
 int dbSize = 0;
 
 char *getString();
+int *getInt();
 
 int validLength(char *s);
 int countShows();
@@ -152,19 +153,19 @@ void expandDB()
 {
   if(dbSize==0)
     {
-       database[dbSize][dbSize]=malloc(sizeof(TVShow));
-       dbSize++;
-       return;
+      database=calloc(++dbSize,sizeof(TVShow**));
+      return;
     }
+  database=(TVShow***)realloc(database, ++dbSize*sizeof(TVShow**));
   for(int c=0; c<dbSize; c++)
   {
-    database[dbSize][c]=malloc(sizeof(TVShow));
+    database[c]=(TVShow**)realloc(database[c], dbSize*sizeof(TVShow*));
+    database[c][dbSize-1]=NULL;
   }
   for(int r=0; r<dbSize; r++)
   {
-    database[r][dbSize]=malloc(sizeof(TVShow));
+    database[dbSize-1][r]=NULL;
   }
-  dbSize++;
 }
 
 TVShow *findShow(char *temp)
@@ -192,6 +193,18 @@ Season *findSeason(TVShow *show, char *name)
    temp=temp->next;
   }
   return NULL;
+}
+
+Episode *findEpisode(Season *sea, char *name)
+{
+  Episode *temp=sea->episodes;
+  while(temp!=NULL)
+  {
+    if(strcmp(name, temp->name)==0)
+     return temp;
+    temp=temp->next;
+  }
+ return NULL;
 }
 
 void addShow()
@@ -276,6 +289,75 @@ void addSeason()
  tempS->next=S;
 }
 
+void addEpisode()
+{
+  printf("Enter the name of the show:\n");
+  char *temp=getString();
+  TVShow *TV=findShow(temp); 
+  if(TV==NULL)
+  {
+   printf("Show not found.\n");
+   free(temp);
+   return;
+  }
+  printf("Enter the name of the season:\n");
+  temp=getString();
+  Season *S=findSeason(TV, temp);
+  if(S==NULL)
+  {
+   printf("Season not found.\n");
+   free(temp);
+   return;
+  }
+  printf("Enter the name of the episode:\n");
+  temp=getString();
+  Episode *ep=findEpisode(S,temp);
+  if(ep!=NULL)
+  {
+   printf("Episode already exists.\n");
+   free(temp);
+   return;
+  }
+  ep=realloc(ep, sizeof(Season));
+  ep->name=temp;
+  free(temp);
+  printf("Enter the length (xx:xx:xx)\n");
+  char *length;
+  scanf("%s", &length);
+  while(!validLength(length))
+  {
+    scanf("%s", &length);
+  }
+  ep->length=length;
+  int pos;
+  ep->next=NULL;
+  printf("Enter the position:\n");
+  scanf("%d", &pos);
+  Episode *tempEP=S->episodes;
+ for(int i=0; i<pos; i++)
+ {
+   if(i==0&&tempEP==NULL)
+   {
+     S->episodes=ep;
+     return;
+   }
+   if(tempEP->next==NULL)
+   {
+    tempEP->next=ep;
+    return;
+   }
+   tempEP=tempEP->next;
+  }
+  if(pos==0)
+  {
+    ep->next=tempEP;
+    tempEP=ep;
+    return;
+    
+  }
+ ep->next=tempEP->next;
+ tempEP->next=ep;
+}
 
 void printEpisode()
 {
@@ -340,6 +422,28 @@ void printShow()
    count++;
  }
 }
+
+void deleteShow()
+{
+  printf("Enter the name of the show:\n");
+  char *temp=getString();
+  TVShow *TV=findShow(temp); 
+  if(TV==NULL)
+  {
+   printf("Show not found.\n");
+   free(temp);
+   return;
+  }
+ while(TV->seasons!=NULL)
+ {
+  Season *temp=TV->seasons;
+  TV->seasons=TV->seasons->next;
+  freeSeason(temp);
+ }
+ free(TV->name);
+ free(TV);
+}
+
 
 //main
 int main() {
