@@ -133,7 +133,7 @@ char *getString() {
 
 int validLength(char *length) {
     if (length == NULL) 
-     return 0;
+        return 0;
 
     int nums[3] = {0, 0, 0}; 
     int i = 0;               
@@ -147,27 +147,27 @@ int validLength(char *length) {
             val = val * 10 + (length[i] - '0');
             digits++;
             i++;
-            
-            if (digits > 2) 
-             return 0;
         }
 
-        if (digits == 0)
-         return 0;
+        if (digits != 2)
+            return 0;
 
         nums[count] = val;
         count++;
 
+
         if (count < 3) {
             if (length[i] != ':') 
-             return 0;
+                return 0;
             i++; 
         }
     }
+
     if (length[i] != '\0') 
-     return 0;
+        return 0;
+
     if (nums[0] > 99 || nums[1] > 59 || nums[2] > 59) 
-     return 0;
+        return 0;
 
     return 1;
 }
@@ -275,24 +275,22 @@ void addShow() {
     newShow->name = temp;
     newShow->seasons = NULL;
 
-    int inserted = FALSE;
-    for (int r = 0; r < dbSize; r++) {
-        for (int c = 0; c < dbSize; c++) {
-            if (database[r][c] != NULL) {
-                if (strcmp(newShow->name, database[r][c]->name) < 0) {
-                    sortShows(r, c); 
-                    database[r][c] = newShow;
-                    inserted = TRUE;
-                    break;
-                }
-            } else {
-                database[r][c] = newShow;
-                inserted = TRUE;
-                break;
-            }
+   int totalSlots = dbSize * dbSize;
+    for (int i = 0; i < totalSlots; i++) {
+        int r = i / dbSize;
+        int c = i % dbSize;
+
+        if (database[r][c] != NULL && strcmp(newShow->name, database[r][c]->name) < 0) 
+        {
+            sortShows(r, c); // Shift everything forward
+            database[r][c] = newShow; // Drop new show in the hole
+            return;
         }
-        if (inserted) 
-         break;
+
+        if (database[r][c] == NULL) {
+            database[r][c] = newShow;
+            return;
+        }
     }
 }
 
@@ -403,11 +401,11 @@ void printShow() {
 
     printf("Name: %s\n", show->name);
     Season *s = show->seasons;
-    int countS = 1;
+    int countS = 0;
     while (s) {
         printf("    Season %d: %s\n", countS++, s->name);
         Episode *e = s->episodes;
-        int countE = 1;
+        int countE = 0;
         while (e) {
             printf("        Episode %d: %s (%s)\n", countE++, e->name, e->length);
             e = e->next;
@@ -578,6 +576,6 @@ int main() {
             case 3: printMenuSub(); break;
             case 4: freeAll(); break;
         }
-    } while (choice != 4);
+    } while(choice != 4);
     return 0;
 }
