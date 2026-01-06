@@ -24,8 +24,14 @@ typedef struct TVShow {
     Season *seasons;
 } TVShow;
 
+//My defines
 #define TRUE 1
 #define FALSE 0
+#define MAX_SEC_MIN 59
+#define MAX_HOURS 99
+#define TIME_FORMAT_NUM 3
+#define DIGITS 2
+
 
 TVShow ***database = NULL;
 int dbSize = 0;
@@ -135,11 +141,11 @@ int validLength(char *length) {
     if (length == NULL) 
         return 0;
 
-    int nums[3] = {0, 0, 0}; 
+    int nums[TIME_FORMAT_NUM] = {0, 0, 0}; 
     int i = 0;               
     int count = 0;           
 
-    while (count < 3) {
+    while (count < TIME_FORMAT_NUM) {
         int digits = 0;
         int val = 0;
 
@@ -149,14 +155,14 @@ int validLength(char *length) {
             i++;
         }
 
-        if (digits != 2)
+        if (digits != DIGITS)
             return 0;
 
         nums[count] = val;
         count++;
 
 
-        if (count < 3) {
+        if (count < TIME_FORMAT_NUM) {
             if (length[i] != ':') 
                 return 0;
             i++; 
@@ -166,21 +172,20 @@ int validLength(char *length) {
     if (length[i] != '\0') 
         return 0;
 
-    if (nums[0] > 99 || nums[1] > 59 || nums[2] > 59) 
+    if (nums[0] > MAX_HOURS || nums[1] > MAX_SEC_MIN || nums[2] > MAX_SEC_MIN) 
         return 0;
 
     return 1;
 }
 
 void sortShows(int r, int c) {
-    //I dont know if this is considered cheating treating the 2d "array" as 1 big array
     int totalSlots = dbSize * dbSize;
-    int target = r * dbSize + c;
+    int targetIndex = r * dbSize + c;
 
-
-    for (int i = totalSlots - 1; i > target; i--) {
+    for (int i = totalSlots - 1; i > targetIndex; i--) {
         int currR = i / dbSize;
         int currC = i % dbSize;
+        
         int prevR = (i - 1) / dbSize;
         int prevC = (i - 1) % dbSize;
 
@@ -189,43 +194,39 @@ void sortShows(int r, int c) {
 
     database[r][c] = NULL;
 }
-
 // --- Expand and shrink
 void expandDB() {
     int newSize = dbSize + 1;
+    
     TVShow ***newDB = realloc(database, newSize * sizeof(TVShow **));
-    if (!newDB) 
-     return;
+    if (!newDB) return;
     database = newDB;
 
-    database[newSize - 1] = calloc(newSize, sizeof(TVShow *));
-    
     for (int i = 0; i < dbSize; i++) {
-        database[i] = realloc(database[i], newSize * sizeof(TVShow *));
-        database[i][newSize - 1] = NULL;
+        TVShow **newRow = realloc(database[i], newSize * sizeof(TVShow *));
+        if (newRow) {
+            database[i] = newRow;
+            database[i][newSize - 1] = NULL;
+        }
     }
+
+    database[newSize - 1] = calloc(newSize, sizeof(TVShow *));
     dbSize = newSize;
 }
 
 void shrinkDB() {
-    if (dbSize <= 1) return;
-    for (int i = 0; i < dbSize; i++) {
-        if (database[dbSize - 1][i] != NULL || database[i][dbSize - 1] != NULL) return;
-    }
-    
-    int newSize = dbSize - 1;
-    free(database[dbSize - 1]);
-    for (int i = 0; i < newSize; i++) {
-        database[i] = realloc(database[i], newSize * sizeof(TVShow *));
-    }
-    database = realloc(database, newSize * sizeof(TVShow **));
-    dbSize = newSize;
+   
+
+
+
+
 }
 
 // --- Search Functions ---
 
 TVShow *findShow(char *name) {
-    if (!name) return NULL;
+    if (!name||name[0]=='\0') 
+     return NULL;
     for (int r = 0; r < dbSize; r++) {
         for (int c = 0; c < dbSize; c++) {
             if (database[r][c] && strcmp(database[r][c]->name, name) == 0)
@@ -282,8 +283,8 @@ void addShow() {
 
         if (database[r][c] != NULL && strcmp(newShow->name, database[r][c]->name) < 0) 
         {
-            sortShows(r, c); // Shift everything forward
-            database[r][c] = newShow; // Drop new show in the hole
+            sortShows(r, c); 
+            database[r][c] = newShow;
             return;
         }
 
@@ -493,8 +494,11 @@ void deleteShow() {
         }
     }
     free(name);
-    if (foundR == -1) return;
-
+    if (foundR == -1) 
+    {
+        printf("Show not found.\n");
+        return;
+    }
     freeShow(database[foundR][foundC]);
 
     for (int i = foundR * dbSize + foundC; i < dbSize * dbSize - 1; i++) {
@@ -509,8 +513,11 @@ void deleteSeason() {
     char *sn = getString(); 
     TVShow *tv = findShow(sn); 
     free(sn);
-    if (!tv) 
-     return;
+    if (!tv)
+    {
+      printf("Show not found.\n");
+      return;
+    }
     printf("Enter the name of the season:\n");
     char *sen = getString();
     Season *curr = tv->seasons, *prev = NULL;
@@ -519,7 +526,10 @@ void deleteSeason() {
     }
     free(sen);
     if (!curr) 
-     return;
+    {
+      printf("Season not found.\n");
+      return;
+    }
     if (!prev) 
      tv->seasons = curr->next;
     else 
@@ -531,14 +541,20 @@ void deleteEpisode() {
     printf("Enter the name of the show:\n");
     char *sn = getString(); 
     TVShow *tv = findShow(sn); free(sn);
-    if (!tv) 
-     return;
+    if (!tv)
+    {
+      printf("Show not found.\n");
+      return;
+    }
     printf("Enter the name of the season:\n");
     char *sen = getString(); 
     Season *sea = findSeason(tv, sen); 
     free(sen);
-    if (!sea) 
-     return;
+    if (!sea)
+    {
+      printf("Season not found.\n");
+      return;
+    }
     printf("Enter the name of the episode:\n");
     char *en = getString();
     Episode *curr = sea->episodes, *prev = NULL;
@@ -547,7 +563,10 @@ void deleteEpisode() {
      }
     free(en);
     if (!curr) 
-     return;
+    {
+      printf("Episode not found.\n");
+      return;
+    }
     if (!prev) 
      sea->episodes = curr->next;
     else 
@@ -568,7 +587,7 @@ int main() {
     int choice;
     do {
         mainMenu();
-        if (scanf("%d", &choice) != 1) break;
+        scanf("%d", &choice);
         getchar();
         switch (choice) {
             case 1: addMenu(); break;
