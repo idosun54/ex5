@@ -322,7 +322,7 @@ void addSeason() {
     scanf("%d", &pos); 
     getchar();
 
-    if (pos <= 0 || !tv->seasons) {
+    if (!tv->seasons) {
         newS->next = tv->seasons;
         tv->seasons = newS;
     } else {
@@ -376,7 +376,7 @@ void addEpisode() {
     printf("Enter the position:\n");
     int pos; scanf("%d", &pos); getchar();
 
-    if (pos <= 0 || !sea->episodes) {
+    if (!sea->episodes) {
         newE->next = sea->episodes;
         sea->episodes = newE;
     } else {
