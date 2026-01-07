@@ -450,6 +450,7 @@ void printShow() {
     printf("Name: %s\n", show->name);
     Season *s = show->seasons;
     int countS = 0;
+    printf("Seasons:\n");
     while (s) {
         printf("    Season %d: %s\n", countS++, s->name);
         Episode *e = s->episodes;
