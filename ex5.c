@@ -125,13 +125,16 @@ void mainMenu() {
 // --- All My Functions ---
 char *getString() {
     char ch;
-    char *temp = NULL;
+    char *temp = malloc(1);
+    if (!temp) return NULL;
+    temp[0] = '\0';
+    
     int currentLen = 0;
     while (scanf("%c", &ch) == 1 && ch != '\n') {
         char *next = realloc(temp, currentLen + 2);
         if (!next) { 
-        free(temp); 
-        return NULL; 
+            free(temp); 
+            return NULL; 
         }
         temp = next;
         temp[currentLen++] = ch;
@@ -271,8 +274,8 @@ void shrinkDB() {
 // --- Search Functions ---
 
 TVShow *findShow(char *name) {
-    if (!name||name[0]=='\0') 
-     return NULL;
+    if (!name) 
+     return NULL; 
     for (int r = 0; r < dbSize; r++) {
         for (int c = 0; c < dbSize; c++) {
             if (database[r][c] && strcmp(database[r][c]->name, name) == 0)
@@ -481,9 +484,10 @@ void printEpisode() {
     char *sn = getString(); 
     TVShow *tv = findShow(sn); 
     free(sn);
-    if (!tv) 
-     return;
-     
+    if (!tv) { 
+    printf("Show not found.\n"); 
+    return; 
+    }
     printf("Enter the name of the season:\n");
     char *sen = getString(); 
     Season *sea = findSeason(tv, sen); 
@@ -646,6 +650,6 @@ int main() {
             case 3: printMenuSub(); break;
             case 4: freeAll(); break;
         }
-    } while(choice != 4);
+    } while (choice != 4);
     return 0;
 }
