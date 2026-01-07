@@ -129,7 +129,10 @@ char *getString() {
     int currentLen = 0;
     while (scanf("%c", &ch) == 1 && ch != '\n') {
         char *next = realloc(temp, currentLen + 2);
-        if (!next) { free(temp); return NULL; }
+        if (!next) { 
+        free(temp); 
+        return NULL; 
+        }
         temp = next;
         temp[currentLen++] = ch;
         temp[currentLen] = '\0';
@@ -179,47 +182,90 @@ int validLength(char *length) {
 }
 
 void sortShows(int r, int c) {
-    int totalSlots = dbSize * dbSize;
-    int targetIndex = r * dbSize + c;
-
-    for (int i = totalSlots - 1; i > targetIndex; i--) {
-        int currR = i / dbSize;
-        int currC = i % dbSize;
+    for (int i = dbSize - 1; i >= r; i--) {
+        // Shift within the row
+        for (int j = dbSize - 1; j > 0; j--) {
+  
+            if (i == r && j <= c) break;
+            database[i][j] = database[i][j - 1];
+        }
         
-        int prevR = (i - 1) / dbSize;
-        int prevC = (i - 1) % dbSize;
-
-        database[currR][currC] = database[prevR][prevC];
-    }
-
-    database[r][c] = NULL;
-}
-// --- Expand and shrink
-void expandDB() {
-    int newSize = dbSize + 1;
-    
-    TVShow ***newDB = realloc(database, newSize * sizeof(TVShow **));
-    if (!newDB) return;
-    database = newDB;
-
-    for (int i = 0; i < dbSize; i++) {
-        TVShow **newRow = realloc(database[i], newSize * sizeof(TVShow *));
-        if (newRow) {
-            database[i] = newRow;
-            database[i][newSize - 1] = NULL;
+        if (i > r) {
+            database[i][0] = database[i - 1][dbSize - 1];
         }
     }
+    database[r][c] = NULL;
+}
+// --- Expand and shrink ---
+void expandDB() {
+    int oldSize = dbSize;
+    int newSize = dbSize + 1;
 
-    database[newSize - 1] = calloc(newSize, sizeof(TVShow *));
+    TVShow **tempList = malloc(oldSize * oldSize * sizeof(TVShow *));
+    int count = 0;
+    for (int r = 0; r < oldSize; r++) {
+        for (int c = 0; c < oldSize; c++) {
+            tempList[count++] = database[r][c];
+        }
+    }
+    
+    database = realloc(database, newSize * sizeof(TVShow **));
+    for (int i = 0; i < oldSize; i++) {
+        free(database[i]); 
+    }
+    for (int i = 0; i < newSize; i++) {
+        database[i] = calloc(newSize, sizeof(TVShow *));
+    }
+
     dbSize = newSize;
+    
+    for(int i = 0; i < count; i++) {
+        database[i / dbSize][i % dbSize] = tempList[i];
+    }
+    free(tempList);
 }
 
 void shrinkDB() {
-   
+    if (dbSize <= 1) 
+     return;
 
+    int count = 0;
+    for (int r = 0; r < dbSize; r++) {
+        for (int c = 0; c < dbSize; c++) {
+            if (database[r][c] != NULL) count++;
+        }
+    }
 
+    int newSize = dbSize - 1;
+    if (count <= newSize * newSize) {
+     TVShow **tempList = malloc(count * sizeof(TVShow *));
+     int k = 0;
+        for (int r = 0; r < dbSize; r++) {
+         for (int c = 0; c < dbSize; c++) {
+          if (database[r][c] != NULL) {
+           tempList[k++] = database[r][c];
+            }
+          }
+        }
 
+        for (int i = 0; i < dbSize; i++) {
+            free(database[i]);
+        }
 
+        TVShow ***tempDB = realloc(database, newSize * sizeof(TVShow **));
+        if (tempDB != NULL) database = tempDB;
+        
+        dbSize = newSize;
+
+        for (int i = 0; i < dbSize; i++) {
+            database[i] = calloc(dbSize, sizeof(TVShow *));
+        }
+
+        for (int i = 0; i < count; i++) {
+            database[i / dbSize][i % dbSize] = tempList[i];
+        }
+        free(tempList);
+    }
 }
 
 // --- Search Functions ---
@@ -260,6 +306,7 @@ Episode *findEpisode(Season *sea, char *name) {
 
 // --- Add Functions ---
 void addShow() {
+
     if (dbSize == 0 || database[dbSize - 1][dbSize - 1] != NULL) {
         expandDB();
     }
@@ -276,21 +323,21 @@ void addShow() {
     newShow->name = temp;
     newShow->seasons = NULL;
 
-   int totalSlots = dbSize * dbSize;
-    for (int i = 0; i < totalSlots; i++) {
-        int r = i / dbSize;
-        int c = i % dbSize;
 
-        if (database[r][c] != NULL && strcmp(newShow->name, database[r][c]->name) < 0) 
-        {
-            sortShows(r, c); 
-            database[r][c] = newShow;
-            return;
-        }
+    for (int r = 0; r < dbSize; r++) {
+        for (int c = 0; c < dbSize; c++) {
+            if (database[r][c] != NULL) {
+                if (strcmp(newShow->name, database[r][c]->name) < 0) {
+                    sortShows(r, c); 
+                    database[r][c] = newShow;
+                    return;
+                }
+            } 
 
-        if (database[r][c] == NULL) {
-            database[r][c] = newShow;
-            return;
+            else {
+                database[r][c] = newShow;
+                return;
+            }
         }
     }
 }
@@ -489,7 +536,9 @@ void deleteShow() {
     for (int r = 0; r < dbSize; r++) {
         for (int c = 0; c < dbSize; c++) {
             if (database[r][c] && strcmp(database[r][c]->name, name) == 0) {
-                foundR = r; foundC = c; break;
+                foundR = r; 
+                foundC = c; 
+                break;
             }
         }
     }
@@ -576,7 +625,8 @@ void deleteEpisode() {
 
 void freeAll() {
     for (int r = 0; r < dbSize; r++) {
-        for (int c = 0; c < dbSize; c++) freeShow(database[r][c]);
+        for (int c = 0; c < dbSize; c++) 
+        freeShow(database[r][c]);
         free(database[r]);
     }
     free(database);
